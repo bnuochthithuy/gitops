@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: shop-backend
-          image: ghcr.io/bnuochthithuy/shop-backend:latest
+          image: ghcr.io/bnuochthithuy/shop-backend:31b0a2cbfbb1c9cd668d29849761205268fd89a9
           ports:
             - containerPort: 3000
           envFrom:

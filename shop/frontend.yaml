@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
         - name: shop-frontend
-          image: ghcr.io/bnuochthithuy/shop-frontend:latest
+          image: ghcr.io/bnuochthithuy/shop-frontend:31b0a2cbfbb1c9cd668d29849761205268fd89a9
           ports:
             - containerPort: 80
           volumeMounts:
