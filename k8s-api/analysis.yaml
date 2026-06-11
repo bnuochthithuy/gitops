@@ -14,4 +14,4 @@ spec:
         address: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
         query: |
           sum(rate(flask_http_request_total{namespace="demo",status=~"5.."}[1m])) or vector(0)
-    successCondition: result[0] < 0.1
+    successCondition: result[0] < 0.01
