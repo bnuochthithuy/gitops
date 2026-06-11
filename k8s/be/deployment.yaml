@@ -15,7 +15,13 @@ spec:
     spec:
       containers:
       - name: be
-        image: hashicorp/http-echo:0.2.3
-        args: ["-text=Hello from Backend"]
+        image: nginx:alpine
         ports:
-        - containerPort: 5678
+        - containerPort: 80
+        volumeMounts:
+        - name: api-data
+          mountPath: /usr/share/nginx/html/api
+      volumes:
+      - name: api-data
+        configMap:
+          name: be-api-data
