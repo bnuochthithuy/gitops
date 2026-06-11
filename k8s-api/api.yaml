@@ -35,6 +35,9 @@ spec:
     canary:
       steps:
         - setWeight: 25
+        - analysis:
+            templates:
+              - templateName: api-error-rate
         - pause: {}
         - setWeight: 50
         - pause:
