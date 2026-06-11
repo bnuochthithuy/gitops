@@ -1,0 +1,85 @@
+name: build-shop
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "shop/src/**"
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: bnuochthithuy
+
+jobs:
+  # ── 1. Build & push backend ───────────────────────────────────────────────
+  build-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push backend
+        run: |
+          IMAGE=ghcr.io/${{ env.OWNER }}/shop-backend:${{ github.sha }}
+          docker build -t $IMAGE shop/src/backend
+          docker push $IMAGE
+
+  # ── 2. Build & push frontend ──────────────────────────────────────────────
+  build-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push frontend
+        run: |
+          IMAGE=ghcr.io/${{ env.OWNER }}/shop-frontend:${{ github.sha }}
+          docker build -t $IMAGE shop/src/frontend
+          docker push $IMAGE
+
+  # ── 3. Cập nhật image tag → ArgoCD tự sync ───────────────────────────────
+  update-manifests:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update backend image tag
+        run: |
+          sed -i "s|image: ghcr.io/.*/shop-backend:.*|image: ghcr.io/${{ env.OWNER }}/shop-backend:${{ github.sha }}|" \
+            shop/backend.yaml
+
+      - name: Update frontend image tag
+        run: |
+          sed -i "s|image: ghcr.io/.*/shop-frontend:.*|image: ghcr.io/${{ env.OWNER }}/shop-frontend:${{ github.sha }}|" \
+            shop/frontend.yaml
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add shop/backend.yaml shop/frontend.yaml
+          git diff --staged --quiet || \
+            git commit -m "ci: update shop images to ${{ github.sha }}"
+          git push

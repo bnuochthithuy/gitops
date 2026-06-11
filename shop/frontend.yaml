@@ -1,0 +1,118 @@
+## ── ConfigMap (nginx config) ───────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-frontend-nginx
+  namespace: shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location /api/ {
+            proxy_pass http://shop-backend:3000/api/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+## ── Deployment ─────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-frontend
+  namespace: shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  labels:
+    app: shop-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shop-frontend
+  template:
+    metadata:
+      labels:
+        app: shop-frontend
+    spec:
+      containers:
+        - name: shop-frontend
+          image: ghcr.io/bnuochthithuy/shop-frontend:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: shop-frontend-nginx
+---
+## ── Service ────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-frontend
+  namespace: shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  selector:
+    app: shop-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+## ── Ingress ────────────────────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+  namespace: shop
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: shop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shop-frontend
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: shop-backend
+                port:
+                  number: 3000

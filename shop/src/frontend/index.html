@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitOps Shop</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+
+    header {
+      background: #1a1a2e; color: #fff;
+      padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    header h1 span { color: #e94560; }
+    .cart-btn {
+      background: #e94560; color: #fff; border: none;
+      padding: .5rem 1.2rem; border-radius: 20px; cursor: pointer; font-size: 1rem;
+    }
+    .cart-count {
+      background: #fff; color: #e94560; border-radius: 50%;
+      width: 20px; height: 20px; display: inline-flex;
+      align-items: center; justify-content: center; font-size: .75rem; font-weight: bold; margin-left: .4rem;
+    }
+
+    main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    .search-bar { display: flex; gap: .5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .search-bar input, .search-bar select {
+      padding: .6rem 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;
+    }
+    .search-bar input { flex: 1; min-width: 200px; }
+
+    .products-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem;
+    }
+    .product-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08); overflow: hidden; transition: transform .2s;
+    }
+    .product-card:hover { transform: translateY(-4px); }
+    .product-card img { width: 100%; height: 200px; object-fit: cover; }
+    .product-info { padding: 1rem; }
+    .product-info h3 { font-size: 1rem; margin-bottom: .4rem; }
+    .product-price { color: #e94560; font-weight: bold; font-size: 1.1rem; }
+    .product-stock { color: #888; font-size: .85rem; margin: .3rem 0 .8rem; }
+    .add-to-cart {
+      width: 100%; padding: .6rem; background: #1a1a2e; color: #fff;
+      border: none; border-radius: 8px; cursor: pointer; font-size: .95rem; transition: background .2s;
+    }
+    .add-to-cart:hover { background: #e94560; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 200; justify-content: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+    .cart-panel {
+      background: #fff; width: 420px; height: 100vh;
+      padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .cart-panel h2 { margin-bottom: 1rem; }
+    .cart-item {
+      display: flex; align-items: center; gap: 1rem;
+      border-bottom: 1px solid #eee; padding: .8rem 0;
+    }
+    .cart-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+    .cart-item-info { flex: 1; font-size: .9rem; }
+    .cart-item-qty { display: flex; align-items: center; gap: .5rem; margin-top: .3rem; }
+    .qty-btn {
+      width: 26px; height: 26px; border: 1px solid #ddd;
+      background: #f5f5f5; border-radius: 4px; cursor: pointer;
+    }
+    .remove-btn { color: #e94560; background: none; border: none; cursor: pointer; font-size: 1.2rem; }
+    .cart-total { margin-top: auto; padding-top: 1rem; border-top: 2px solid #eee; }
+    .cart-total p { font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; }
+    .checkout-btn {
+      width: 100%; padding: .8rem; background: #e94560; color: #fff;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;
+    }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; float: right; }
+
+    .checkout-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 300; align-items: center; justify-content: center;
+    }
+    .checkout-modal.open { display: flex; }
+    .checkout-form {
+      background: #fff; padding: 2rem; border-radius: 12px;
+      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+    }
+    .checkout-form h2 { margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: .4rem; font-size: .9rem; font-weight: 500; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: .6rem .8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;
+    }
+    .form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .btn-cancel { flex: 1; padding: .7rem; background: #eee; border: none; border-radius: 8px; cursor: pointer; }
+    .btn-order { flex: 2; padding: .7rem; background: #e94560; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: .8rem 1.5rem;
+      border-radius: 8px; display: none; z-index: 999;
+    }
+    .toast.show { display: block; }
+    .toast.success { background: #27ae60; }
+    .toast.error   { background: #e74c3c; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>GitOps <span>Shop</span></h1>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Giỏ hàng <span class="cart-count" id="cartCount">0</span>
+  </button>
+</header>
+
+<main>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm..." oninput="filterProducts()" />
+    <select id="categorySelect" onchange="filterProducts()">
+      <option value="">Tất cả danh mục</option>
+      <option value="clothes">Quần áo</option>
+      <option value="shoes">Giày dép</option>
+      <option value="bags">Túi xách</option>
+      <option value="accessories">Phụ kiện</option>
+    </select>
+  </div>
+  <div class="products-grid" id="productsGrid">
+    <p style="grid-column:1/-1;text-align:center;color:#888">Đang tải sản phẩm...</p>
+  </div>
+</main>
+
+<!-- Cart -->
+<div class="modal-overlay" id="cartOverlay" onclick="closeCartIfOutside(event)">
+  <div class="cart-panel">
+    <button class="close-btn" onclick="closeCart()">✕</button>
+    <h2>Giỏ hàng</h2>
+    <div id="cartItems"></div>
+    <div class="cart-total" id="cartTotal" style="display:none">
+      <p id="totalText"></p>
+      <button class="checkout-btn" onclick="openCheckout()">Đặt hàng ngay</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout -->
+<div class="checkout-modal" id="checkoutModal">
+  <div class="checkout-form">
+    <h2>Thông tin đặt hàng</h2>
+    <div class="form-group"><label>Họ và tên *</label><input type="text" id="customerName" /></div>
+    <div class="form-group"><label>Email *</label><input type="email" id="customerEmail" /></div>
+    <div class="form-group"><label>Số điện thoại</label><input type="tel" id="customerPhone" /></div>
+    <div class="form-group"><label>Địa chỉ giao hàng *</label><textarea id="customerAddress" rows="3"></textarea></div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeCheckout()">Hủy</button>
+      <button class="btn-order" onclick="placeOrder()">Xác nhận đặt hàng</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '/api';
+  let allProducts = [];
+  let cart = JSON.parse(localStorage.getItem('shop_cart') || '[]');
+
+  const fmt = n => n.toLocaleString('vi-VN') + '₫';
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast show ${type}`;
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  function saveCart() { localStorage.setItem('shop_cart', JSON.stringify(cart)); }
+
+  async function loadProducts() {
+    try {
+      const r = await fetch(`${API}/products`);
+      if (!r.ok) throw new Error();
+      allProducts = (await r.json()).data;
+      renderProducts(allProducts);
+    } catch {
+      document.getElementById('productsGrid').innerHTML =
+        '<p style="grid-column:1/-1;text-align:center;color:#e74c3c">Không thể tải sản phẩm.</p>';
+    }
+  }
+
+  function filterProducts() {
+    const s = document.getElementById('searchInput').value.toLowerCase();
+    const c = document.getElementById('categorySelect').value;
+    renderProducts(allProducts.filter(p => (!c || p.category === c) && (!s || p.name.toLowerCase().includes(s))));
+  }
+
+  function renderProducts(list) {
+    document.getElementById('productsGrid').innerHTML = list.length
+      ? list.map(p => `
+          <div class="product-card">
+            <img src="${p.image}" alt="${p.name}" loading="lazy" />
+            <div class="product-info">
+              <h3>${p.name}</h3>
+              <div class="product-price">${fmt(p.price)}</div>
+              <div class="product-stock">Còn ${p.stock}</div>
+              <button class="add-to-cart" onclick="addToCart(${p.id})" ${p.stock===0?'disabled':''}>
+                ${p.stock===0?'Hết hàng':'Thêm vào giỏ'}
+              </button>
+            </div>
+          </div>`).join('')
+      : '<p style="grid-column:1/-1;text-align:center;color:#888">Không tìm thấy sản phẩm.</p>';
+  }
+
+  function addToCart(id) {
+    const p = allProducts.find(p => p.id === id);
+    const item = cart.find(i => i.productId === id);
+    if (item) { if (item.quantity >= p.stock) { showToast('Đã đạt số lượng tối đa','error'); return; } item.quantity++; }
+    else cart.push({ productId: id, name: p.name, price: p.price, image: p.image, quantity: 1 });
+    saveCart(); updateCartCount(); showToast(`Đã thêm "${p.name}"`);
+  }
+
+  function removeFromCart(id) { cart = cart.filter(i => i.productId !== id); saveCart(); updateCartCount(); renderCart(); }
+
+  function updateQty(id, d) {
+    const item = cart.find(i => i.productId === id);
+    if (!item) return;
+    item.quantity += d;
+    if (item.quantity <= 0) { removeFromCart(id); return; }
+    saveCart(); renderCart();
+  }
+
+  function updateCartCount() {
+    document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.quantity, 0);
+  }
+
+  function renderCart() {
+    const el = document.getElementById('cartItems');
+    const tot = document.getElementById('cartTotal');
+    if (!cart.length) { el.innerHTML = '<p style="text-align:center;color:#888;margin-top:2rem">Giỏ hàng trống 🛒</p>'; tot.style.display='none'; return; }
+    el.innerHTML = cart.map(i => `
+      <div class="cart-item">
+        <img src="${i.image}" alt="${i.name}" />
+        <div class="cart-item-info">
+          <div>${i.name}</div>
+          <div>${fmt(i.price)}</div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" onclick="updateQty(${i.productId},-1)">−</button>
+            <span>${i.quantity}</span>
+            <button class="qty-btn" onclick="updateQty(${i.productId},1)">+</button>
+          </div>
+        </div>
+        <button class="remove-btn" onclick="removeFromCart(${i.productId})">🗑</button>
+      </div>`).join('');
+    document.getElementById('totalText').textContent = 'Tổng: ' + fmt(cart.reduce((s,i)=>s+i.price*i.quantity,0));
+    tot.style.display = 'block';
+  }
+
+  function openCart()  { renderCart(); document.getElementById('cartOverlay').classList.add('open'); }
+  function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); }
+  function closeCartIfOutside(e) { if (e.target.id==='cartOverlay') closeCart(); }
+
+  function openCheckout()  { closeCart(); document.getElementById('checkoutModal').classList.add('open'); }
+  function closeCheckout() { document.getElementById('checkoutModal').classList.remove('open'); }
+
+  async function placeOrder() {
+    const name    = document.getElementById('customerName').value.trim();
+    const email   = document.getElementById('customerEmail').value.trim();
+    const phone   = document.getElementById('customerPhone').value.trim();
+    const address = document.getElementById('customerAddress').value.trim();
+    if (!name || !email || !address) { showToast('Vui lòng điền đủ thông tin (*)','error'); return; }
+    try {
+      const r = await fetch(`${API}/orders`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ customerName:name, customerEmail:email, customerPhone:phone, address,
+          items: cart.map(i=>({productId:i.productId,quantity:i.quantity})) }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      cart = []; saveCart(); updateCartCount(); closeCheckout();
+      showToast(`Đặt hàng thành công! Mã đơn: #${d.id}`);
+    } catch(e) { showToast(e.message,'error'); }
+  }
+
+  updateCartCount();
+  loadProducts();
+</script>
+</body>
+</html>
