@@ -31,6 +31,7 @@ jobs:
       - name: Build & push backend
         run: |
           IMAGE=ghcr.io/${{ env.OWNER }}/shop-backend:${{ github.sha }}
+          cd shop/src/backend && npm install && cd -
           docker build -t $IMAGE shop/src/backend
           docker push $IMAGE
 
