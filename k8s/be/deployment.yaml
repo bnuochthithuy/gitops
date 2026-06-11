@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: be
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: be
+  template:
+    metadata:
+      labels:
+        app: be
+    spec:
+      containers:
+      - name: be
+        image: hashicorp/http-echo:0.2.3
+        args: ["-text=Hello from Backend"]
+        ports:
+        - containerPort: 5678
