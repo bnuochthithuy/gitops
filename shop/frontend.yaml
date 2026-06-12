@@ -86,33 +86,5 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-  type: ClusterIP
----
-## ── Ingress ────────────────────────────────────────────────────────────────
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: shop-ingress
-  namespace: shop
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: shop.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: shop-frontend
-                port:
-                  number: 80
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: shop-backend
-                port:
-                  number: 3000
+      nodePort: 30080
+  type: NodePort
