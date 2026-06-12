@@ -1,0 +1,10 @@
+region             = "us-west-2"
+aws_profile        = "default"
+ec2_instance_id    = "i-0123456789abcdef0"
+notification_email = "your-email@example.com"
+
+# Lab defaults:
+# cpu_threshold_percent    = 80
+# alarm_period_seconds     = 300
+# alarm_evaluation_periods = 1
+# send_ok_notification     = true
