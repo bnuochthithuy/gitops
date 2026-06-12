@@ -1,0 +1,62 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-slo
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    # ── 1. Recording rules: tính SLO liên tục ─────────────────────────────
+    - name: api-slo-recording
+      interval: 30s
+      rules:
+        # Tỉ lệ request thành công (non-5xx) trong 5 phút
+        - record: api:http_request_success_rate:5m
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo", status!~"5.."}[5m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[5m]))
+
+        # Error budget còn lại — SLO target 99%
+        # = 1 - (actual_error_rate / allowed_error_rate)
+        - record: api:slo_error_budget_remaining
+          expr: |
+            1 - (
+              (1 - api:http_request_success_rate:5m)
+              / (1 - 0.99)
+            )
+
+    # ── 2. Alert rules ──────────────────────────────────────────────────────
+    - name: api-slo-alerts
+      rules:
+        # Critical: SLO bị vi phạm — error rate > 1% trong 5 phút
+        - alert: ApiSLOBreach
+          expr: |
+            sum(rate(flask_http_request_total{namespace="demo", status=~"5.."}[5m]))
+            /
+            sum(rate(flask_http_request_total{namespace="demo"}[5m]))
+            > 0.01
+          for: 5m
+          labels:
+            severity: critical
+            team: api
+          annotations:
+            summary: "API SLO bị vi phạm"
+            description: |
+              Error rate hiện tại {{ $value | humanizePercentage }} vượt ngưỡng SLO 1%.
+              Availability đang dưới 99%.
+            runbook_url: "https://github.com/bnuochthithuy/gitops/blob/main/k8s-api/README.md"
+
+        # Warning: error budget tiêu thụ > 50%
+        - alert: ApiSLOErrorBudgetLow
+          expr: api:slo_error_budget_remaining < 0.5
+          for: 2m
+          labels:
+            severity: warning
+            team: api
+          annotations:
+            summary: "API error budget tiêu thụ > 50%"
+            description: |
+              Error budget còn lại {{ $value | humanizePercentage }}.
+              Cần kiểm tra ngay để tránh vi phạm SLO 99%.
