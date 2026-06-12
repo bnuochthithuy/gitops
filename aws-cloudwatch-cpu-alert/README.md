@@ -31,9 +31,9 @@ notepad .\terraform.tfvars
 Sua cac gia tri bat buoc:
 
 ```hcl
-region             = "us-west-2"
+region             = "us-east-1"
 aws_profile        = "default"
-ec2_instance_id    = "i-xxxxxxxxxxxxxxxxx"
+ec2_instance_id    = "i-0349b4fa02b794fea"
 notification_email = "email-cua-ban@example.com"
 ```
 
@@ -46,6 +46,24 @@ terraform apply tfplan
 ```
 
 Sau khi apply, mo email va bam link `Confirm subscription` cua AWS SNS. Neu chua confirm, SNS se khong gui email canh bao.
+
+## Cau hinh dang dung trong lab
+
+Lab hien tai dang monitor EC2 sau:
+
+```text
+Region: us-east-1
+Instance ID: i-0349b4fa02b794fea
+Public IPv4: 98.92.31.148
+Alarm name: cloudwatch-cpu-alert-lab-i-0349b4fa02b794fea-cpu-high
+SNS topic: cloudwatch-cpu-alert-lab-cpu-alerts
+```
+
+Instance nay co `KeyName = None`, nen khong SSH bang file `.pem`. De tao CPU load, dung AWS Console:
+
+```text
+EC2 -> Instances -> chon i-0349b4fa02b794fea -> Connect -> EC2 Instance Connect -> Connect
+```
 
 ## Cau hinh Alarm
 
@@ -63,13 +81,20 @@ Alarm dang dung cau hinh dung voi yeu cau lab:
 
 ## Kiem tra bang cach tao CPU load
 
-SSH vao EC2 can monitor, cai cong cu stress va tao tai CPU.
+Mo terminal vao EC2 bang `EC2 Instance Connect`, cai cong cu stress va tao tai CPU.
 
 Amazon Linux 2023:
 
 ```bash
 sudo dnf install -y stress-ng
-stress-ng --cpu 2 --timeout 420s --metrics-brief
+stress-ng --cpu 0 --timeout 420s --metrics-brief
+```
+
+Amazon Linux 2:
+
+```bash
+sudo yum install -y stress
+stress --cpu 0 --timeout 420
 ```
 
 Ubuntu:
@@ -77,7 +102,7 @@ Ubuntu:
 ```bash
 sudo apt-get update
 sudo apt-get install -y stress-ng
-stress-ng --cpu 2 --timeout 420s --metrics-brief
+stress-ng --cpu 0 --timeout 420s --metrics-brief
 ```
 
 Cho hon 5 phut de CloudWatch nhan du metric. Khi CPU trung binh vuot 80%, alarm chuyen sang `ALARM` va SNS gui email. Khi dung stress va CPU giam lai, alarm se chuyen ve `OK` va gui email neu `send_ok_notification = true`.
@@ -99,8 +124,56 @@ aws sns list-subscriptions-by-topic --topic-arn $(terraform output -raw sns_topi
 Kiem tra trang thai alarm:
 
 ```powershell
-aws cloudwatch describe-alarms --alarm-names $(terraform output -raw cloudwatch_alarm_name)
+aws cloudwatch describe-alarms --region us-east-1 --alarm-names $(terraform output -raw cloudwatch_alarm_name)
 ```
+
+## Evidence can chup
+
+Can chup toi thieu 4 hinh sau de nop lab:
+
+1. SNS subscription da confirm:
+
+```text
+AWS Console -> us-east-1 -> SNS -> Topics -> cloudwatch-cpu-alert-lab-cpu-alerts -> Subscriptions
+```
+
+Can thay email subscription o trang thai `Confirmed`.
+
+2. CloudWatch alarm config:
+
+```text
+AWS Console -> us-east-1 -> CloudWatch -> Alarms -> All alarms
+```
+
+Chon alarm:
+
+```text
+cloudwatch-cpu-alert-lab-i-0349b4fa02b794fea-cpu-high
+```
+
+Can chup duoc cac thong tin:
+
+```text
+Metric: CPUUtilization
+InstanceId: i-0349b4fa02b794fea
+Threshold: CPUUtilization > 80
+Period: 5 minutes
+Evaluation: 1 out of 1
+```
+
+3. CloudWatch alarm `In alarm`:
+
+Sau khi chay `stress-ng` hoac `stress` tren EC2 khoang 5-7 phut, quay lai CloudWatch va chup alarm co state:
+
+```text
+In alarm
+```
+
+4. Email canh bao `ALARM`:
+
+Mo hop thu email da confirm voi SNS va chup email canh bao CloudWatch gui qua SNS.
+
+Neu co thoi gian, chup them alarm hoac email khi trang thai tro lai `OK` sau khi dung stress.
 
 ## Don dep
 
