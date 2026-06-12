@@ -29,7 +29,8 @@ spec:
             key: smtp_password
           requireTLS: true
           headers:
-            Subject: "[API ALERT] {{ .GroupLabels.alertname }} - {{ .Status | toUpper }}"
+            - key: Subject
+              value: "[API ALERT] {{ .GroupLabels.alertname }} - {{ .Status | toUpper }}"
           html: |
             <h2>🚨 API SLO Alert</h2>
             {{ range .Alerts }}

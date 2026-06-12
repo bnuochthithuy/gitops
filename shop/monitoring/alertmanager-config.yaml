@@ -33,7 +33,8 @@ spec:
             key: smtp_password
           requireTLS: true
           headers:
-            Subject: "[SHOP ALERT] {{ .GroupLabels.alertname }} - {{ .Status | toUpper }}"
+            - key: Subject
+              value: "[SHOP ALERT] {{ .GroupLabels.alertname }} - {{ .Status | toUpper }}"
           html: |
             <h2>🚨 Shop SLO Alert</h2>
             {{ range .Alerts }}
