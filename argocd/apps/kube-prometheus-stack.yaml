@@ -11,9 +11,16 @@ spec:
     targetRevision: 65.1.1
     helm:
       values: |
+        alertmanager:
+          alertmanagerSpec:
+            useExistingSecret: true
+            configSecret: alertmanager-private-config
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
+            serviceMonitorNamespaceSelector: {}
+            ruleSelectorNilUsesHelmValues: false
+            ruleNamespaceSelector: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
