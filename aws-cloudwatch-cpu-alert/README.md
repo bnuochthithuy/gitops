@@ -127,6 +127,28 @@ Kiem tra trang thai alarm:
 aws cloudwatch describe-alarms --region us-east-1 --alarm-names $(terraform output -raw cloudwatch_alarm_name)
 ```
 
+## Evidence da chup
+
+Cac anh evidence hien co trong thu muc `evidence/`:
+
+| File | Noi dung chung minh |
+| --- | --- |
+| `01_SNS_Subscription_Confirmed.png` | SNS Topic co email subscription da duoc confirm. |
+| `02_CloudWatch_Alarm_Config_CPU_80_5min.png` | CloudWatch Alarm cau hinh metric `CPUUtilization`, nguong CPU > 80%, period 5 phut. |
+| `confirm emal.png` | Email confirm subscription tu AWS SNS. |
+
+### SNS subscription confirmed
+
+![SNS subscription confirmed](./evidence/01_SNS_Subscription_Confirmed.png)
+
+### CloudWatch alarm config CPU 80% trong 5 phut
+
+![CloudWatch alarm config CPU 80% trong 5 phut](./evidence/02_CloudWatch_Alarm_Config_CPU_80_5min.png)
+
+### Email confirm SNS
+
+![Email confirm SNS](<./evidence/confirm emal.png>)
+
 ## Evidence can chup
 
 Can chup toi thieu 4 hinh sau de nop lab:
