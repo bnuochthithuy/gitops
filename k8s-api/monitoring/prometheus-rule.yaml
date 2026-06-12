@@ -27,7 +27,7 @@ spec:
       rules:
         - alert: ApiEmailTest
           expr: vector(1)
-          for: 30s
+          for: 0s
           labels:
             namespace: demo
             severity: page

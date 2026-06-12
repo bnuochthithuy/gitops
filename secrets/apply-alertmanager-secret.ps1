@@ -80,7 +80,7 @@ route:
   routes:
     - receiver: personal-email
       matchers:
-        - namespace="demo"
+        - namespace="monitoring"
         - alertname=~"Api.*"
 receivers:
   - name: 'null'
