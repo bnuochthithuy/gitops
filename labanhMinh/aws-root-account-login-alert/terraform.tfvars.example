@@ -1,0 +1,10 @@
+region             = "us-east-1"
+aws_profile        = "default"
+notification_email = "your-email@example.com"
+
+# Lab defaults:
+# project_name             = "root-login-alert-lab"
+# log_retention_days       = 30
+# alarm_period_seconds     = 300
+# alarm_evaluation_periods = 1
+# send_ok_notification     = true
