@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-signed-images
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: require-cosign-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - w10-security-lab
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/OWNER/REPO/*"
+          mutateDigest: true
+          attestors:
+            - entries:
+                - keyless:
+                    subject: "https://github.com/OWNER/REPO/.github/workflows/w10-supply-chain-demo.yml@refs/heads/main"
+                    issuer: "https://token.actions.githubusercontent.com"
