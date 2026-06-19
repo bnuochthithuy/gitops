@@ -1,0 +1,63 @@
+INTERNAL USE ONLY - SAMPLE TEST DATA FOR MACIE LAB
+====================================================
+This file contains synthetic personally identifiable information (PII)
+generated solely for testing Amazon Macie detection capabilities.
+All records below are entirely fictional.
+
+--- CUSTOMER RECORDS ---
+
+Full Name: John Michael Smith
+Date of Birth: 04/15/1985
+Social Security Number: 123-45-6789
+Email: john.smith@example.com
+Phone: (555) 867-5309
+Home Address: 742 Evergreen Terrace, Springfield, IL 62701
+
+Full Name: Jane Elizabeth Doe
+Date of Birth: 09/22/1990
+Social Security Number: 987-65-4321
+Email: jane.doe@example.com
+Phone: (555) 234-5678
+Home Address: 1600 Pennsylvania Ave NW, Washington, DC 20500
+
+--- PAYMENT INFORMATION ---
+
+Card Holder: John Michael Smith
+Card Type: Visa
+Card Number: 4111 1111 1111 1111
+Expiry: 12/2027
+CVV: 123
+Billing Zip: 62701
+
+Card Holder: Jane Elizabeth Doe
+Card Type: Mastercard
+Card Number: 5500 0000 0000 0004
+Expiry: 08/2026
+CVV: 456
+Billing Zip: 20500
+
+Card Holder: Robert James Brown
+Card Type: American Express
+Card Number: 3782 822463 10005
+Expiry: 03/2028
+CVV: 7890
+
+--- PASSPORT / NATIONAL ID ---
+
+Passport Number: A12345678   Name: John Michael Smith   Country: USA
+Passport Number: B98765432   Name: Jane Elizabeth Doe   Country: USA
+Driver License: D1234-5678-9   State: Illinois   Name: John Michael Smith
+
+--- BANK ACCOUNT DATA ---
+
+Account Holder: John Michael Smith
+Bank: First National Bank
+Routing Number: 021000021
+Account Number: 1234567890
+
+Account Holder: Jane Elizabeth Doe
+Bank: Second State Credit Union
+Routing Number: 044000037
+Account Number: 9876543210
+
+--- END OF TEST DATA ---
